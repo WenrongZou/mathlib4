@@ -149,11 +149,11 @@ Note that the binary products assumption is necessary: the existence of a right 
 def forgetAdjStar : forget X ⊣ star X := (coalgebraEquivOver X).symm.toAdjunction.comp (adj _)
 
 @[simp]
-lemma forgetAdjStar_counit (X Y : C) : (Over.forgetAdjStar X).counit.app Y = prod.snd := by
+lemma forgetAdjStar_counit_app (X Y : C) : (Over.forgetAdjStar X).counit.app Y = prod.snd := by
   simp [Over.forgetAdjStar, CategoryTheory.coalgebraEquivOver]
 
 @[simp]
-lemma forgetAdjStar_unit (X : C) (Y : Over X) :
+lemma forgetAdjStar_unit_app_left (X : C) (Y : Over X) :
     ((Over.forgetAdjStar X).unit.app Y).left = prod.lift Y.hom (𝟙 _) := by
   simp [Over.forgetAdjStar, CategoryTheory.coalgebraEquivOver]
 

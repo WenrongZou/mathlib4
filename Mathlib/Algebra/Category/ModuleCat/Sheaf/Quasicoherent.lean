@@ -269,11 +269,11 @@ def Presentation.QuasicoherentData {M : SheafOfModules R} (P : Presentation M) :
     QuasicoherentData M where
   I := C
   X := id
-  coversTop := fun x ↦ GrothendieckTopology.covering_of_eq_top J <| by
+  coversTop x := GrothendieckTopology.covering_of_eq_top J <| by
     rw [Sieve.ext_iff]
     intro _ f
     simpa [Sieve.top_apply, iff_true] using ⟨x, Nonempty.intro f⟩
-  presentation := fun x => P.map (pushforward (𝟙 (R.over x))) (by rfl)
+  presentation x := P.map (pushforward (𝟙 (R.over x))) (by rfl)
 
 /-- If a sheaf of `R`-modules `M` has a presentation, then `M` is quasi-coherent. -/
 theorem Presentation.isQuasicoherent {M : SheafOfModules.{u'} R} (P : Presentation M) :
