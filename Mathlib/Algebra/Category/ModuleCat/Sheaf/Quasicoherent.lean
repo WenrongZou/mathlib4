@@ -265,7 +265,7 @@ variable [∀ X, (J.over X).HasSheafCompose (forget₂ RingCat AddCommGrpCat)]
 /-- Given a sheaf of `R`-modules `M` and a `Presentation M`, we may construct the quasi-coherent
 data on the trivial cover. -/
 @[simps]
-def Presentation.QuasicoherentData {M : SheafOfModules R} (P : Presentation M) :
+def Presentation.quasicoherentData {M : SheafOfModules R} (P : Presentation M) :
     QuasicoherentData M where
   I := C
   X := id
@@ -278,7 +278,7 @@ def Presentation.QuasicoherentData {M : SheafOfModules R} (P : Presentation M) :
 /-- If a sheaf of `R`-modules `M` has a presentation, then `M` is quasi-coherent. -/
 theorem Presentation.isQuasicoherent {M : SheafOfModules.{u'} R} (P : Presentation M) :
     IsQuasicoherent M where
-  nonempty_quasicoherentData := Nonempty.intro (Presentation.QuasicoherentData P)
+  nonempty_quasicoherentData := Nonempty.intro (Presentation.quasicoherentData P)
 
 end
 
