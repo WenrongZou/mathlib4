@@ -25,7 +25,7 @@ we show that they interact with the composition of morphisms similarly as pseudo
 
 @[expose] public section
 
-universe v' u' v v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄ u
+universe w v' u' v v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄ u
 
 open CategoryTheory Functor
 
@@ -257,9 +257,8 @@ noncomputable section
 
 open CategoryTheory Limits
 
-variable {C : Type u'} [SmallCategory C] [HasBinaryProducts C] {J : GrothendieckTopology C}
-  {R : Sheaf J RingCat} [HasSheafify J AddCommGrpCat] [J.WEqualsLocallyBijective AddCommGrpCat]
-  [J.HasSheafCompose (forget₂ RingCat AddCommGrpCat)]
+variable {C : Type u'} [Category.{v'} C] [HasBinaryProducts C] {J : GrothendieckTopology C}
+  {R : Sheaf J RingCat.{u}}
 
 /-- The canonical morphism from `R` to the pushforward of its restriction to `Over x`. -/
 def pushforwardOver (x : C) :
@@ -269,14 +268,14 @@ def pushforwardOver (x : C) :
 
 /-- The adjunction between restriction to `Over x` and pushforward along `Over.star x`. -/
 def overPushforwardOverAdj (x : C) :
-    pushforward.{u'} (𝟙 (R.over x)) ⊣ pushforward.{u'} (pushforwardOver x) := by
+    pushforward.{w} (𝟙 (R.over x)) ⊣ pushforward.{w} (pushforwardOver x) := by
   refine pushforwardPushforwardAdj (Over.forgetAdjStar x) (𝟙 (R.over x)) _ ?_ ?_
   · ext y : 2
     simp [pushforwardOver]
   · ext y : 2
     simp [pushforwardOver, ← Functor.map_comp, ← op_comp]
 
-instance (x : C) : IsLeftAdjoint (pushforward.{u'} (𝟙 (R.over x))) where
+instance (x : C) : IsLeftAdjoint (pushforward.{w} (𝟙 (R.over x))) where
   exists_rightAdjoint := ⟨_, Nonempty.intro (overPushforwardOverAdj x)⟩
 
 end

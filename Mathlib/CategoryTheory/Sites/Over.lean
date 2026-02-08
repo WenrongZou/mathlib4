@@ -243,7 +243,7 @@ section
 
 open CategoryTheory Limits
 
-variable {C : Type u'} [Category.{u'} C] [HasBinaryProducts C] {J : GrothendieckTopology C}
+variable {C : Type u'} [Category* C] [HasBinaryProducts C] {J : GrothendieckTopology C}
 
 theorem coverPreserving_over_star (X : C) :
     CoverPreserving J (J.over X) (Over.star X) where
@@ -256,7 +256,7 @@ theorem coverPreserving_over_star (X : C) :
 
 instance (X : C) : (Over.star X).IsContinuous J (J.over X) :=
   Functor.isContinuous_of_coverPreserving
-    (compatiblePreservingOfFlat (J.over X) (Over.star X)) (coverPreserving_over_star X)
+    (compatiblePreservingOfFlat (J.over X) (Over.star X):) (coverPreserving_over_star X)
 
 end
 
