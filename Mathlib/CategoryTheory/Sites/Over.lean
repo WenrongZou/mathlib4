@@ -256,7 +256,7 @@ theorem coverPreserving_over_star (X : C) :
 
 instance (X : C) : (Over.star X).IsContinuous J (J.over X) :=
   Functor.isContinuous_of_coverPreserving
-    (compatiblePreservingOfFlat (J.over X) (Over.star X):) (coverPreserving_over_star X)
+    (compatiblePreservingOfFlat (J.over X) (Over.star X)) (coverPreserving_over_star X)
 
 end
 
