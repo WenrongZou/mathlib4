@@ -128,12 +128,12 @@ variable {C' : Type u₂} [Category.{v₂} C'] {J' : GrothendieckTopology C'} {S
   [J'.HasSheafCompose (forget₂ RingCat AddCommGrpCat)]
 
 variable {M : SheafOfModules.{u} R} (P : Presentation M)
-  (F : SheafOfModules.{u} R ⥤ SheafOfModules.{u} S) [PreservesColimits F]
+  (F : SheafOfModules.{u} R ⥤ SheafOfModules.{u} S) [PreservesColimitsOfSize.{u, u} F]
   (η : F.obj (unit R) ≅ unit S)
 
 -- `preservesColimitsOfSize_shrink` is not a global instance because it loops indefinitely.
 -- But here it is fine as an instance since the universe `u` is inferrable from the type of `F`.
-instance : PreservesColimitsOfSize.{u, u} F := preservesColimitsOfSize_shrink _
+local instance : PreservesColimitsOfSize.{0, 0} F := preservesColimitsOfSize_shrink _
 
 /-- Let `F` be a functor from sheaf of `R`-module to sheaf of `S`-module, if `F` preserves
 colimits and `F.obj (unit R) ≅ unit S`, given a `P : Presentation M`, then we will obtain
