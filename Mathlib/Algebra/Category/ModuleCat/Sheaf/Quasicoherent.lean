@@ -266,7 +266,6 @@ variable [∀ X, (J.over X).HasSheafCompose (forget₂ RingCat AddCommGrpCat)]
   [∀ X, HasSheafify (J.over X) AddCommGrpCat]
   [∀ X, (J.over X).WEqualsLocallyBijective AddCommGrpCat]
 
-set_option pp.universes true in
 /-- Given a sheaf of `R`-modules `M` and a `Presentation M`, we may construct the quasi-coherent
 data on the trivial cover. -/
 @[simps]
