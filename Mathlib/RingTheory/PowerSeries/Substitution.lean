@@ -275,6 +275,11 @@ theorem subst_X (ha : HasSubst a) :
     subst a (X : R⟦X⟧) = a := by
   rw [← coe_substAlgHom ha, substAlgHom_X]
 
+@[simp]
+theorem subst_C (r : S) :
+    (C r).subst a = MvPowerSeries.C r:= by
+  rw [subst, C, MvPowerSeries.subst_C]
+
 omit [Algebra R S] in
 theorem map_subst {a : MvPowerSeries τ R} (ha : HasSubst a) {h : R →+* S} (f : PowerSeries R) :
     (f.subst a).map h = (f.map h).subst (a.map h) := by
@@ -353,5 +358,38 @@ theorem _root_.MvPowerSeries.rescaleUnit (a : R) (f : R⟦X⟧) :
   ext d
   rw [coeff_rescale, coeff, MvPowerSeries.coeff_rescale]
   simp
+
+section toMvPowerSeries
+
+variable {σ : Type*} {f : PowerSeries R} (i : σ) (r : R)
+
+/-- Given a power series p(X) ∈ R⟦X⟧ and an index i, we may view it as a
+multivariate power series p(X_i) ∈ R⟦X_1, ..., X_n⟧.
+-/
+noncomputable
+def toMvPowerSeries : PowerSeries R →ₐ[R] MvPowerSeries σ R :=
+  substAlgHom (HasSubst.X i)
+
+theorem toMvPowerSeries_apply :
+    f.toMvPowerSeries i = f.subst (MvPowerSeries.X i) := by
+  rw [toMvPowerSeries, coe_substAlgHom]
+
+theorem HasSubst.toMvPowerSeries [Finite σ] (hf : f.constantCoeff = 0) :
+    MvPowerSeries.HasSubst (f.toMvPowerSeries · (σ := σ)) (S := R) :=
+  MvPowerSeries.hasSubst_of_constantCoeff_zero fun x => by
+    rw [toMvPowerSeries_apply, constantCoeff_subst_eq_zero (MvPowerSeries.constantCoeff_X _) _ hf]
+
+theorem toMvPowerSeries_val {a : σ → MvPowerSeries τ R} (i : σ)
+    (ha : MvPowerSeries.HasSubst a) : (f.toMvPowerSeries i).subst a = f.subst (a i) := by
+  simp_rw [toMvPowerSeries_apply, PowerSeries.subst, MvPowerSeries.subst_comp_subst_apply
+    (HasSubst.const (HasSubst.X i)) ha, MvPowerSeries.subst_X ha]
+
+theorem toMvPowerSeries_C : (C r).toMvPowerSeries i = MvPowerSeries.C r := by
+  rw [toMvPowerSeries_apply, subst_C]
+
+theorem toMvPowerSeries_X : X.toMvPowerSeries i = MvPowerSeries.X i (R := R) := by
+  rw [toMvPowerSeries_apply, subst_X (HasSubst.X i)]
+
+end toMvPowerSeries
 
 end PowerSeries

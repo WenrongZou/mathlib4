@@ -251,6 +251,19 @@ theorem subst_X (ha : HasSubst a) (s : σ) :
     subst (R := R) a (X s) = a s := by
   rw [← coe_substAlgHom ha, substAlgHom_X]
 
+@[simp]
+theorem subst_C (r : S) :
+    (C r).subst a = MvPowerSeries.C r:= by
+  have : ∃ (p : MvPolynomial σ S), p.toMvPowerSeries = C r :=
+    ⟨MvPolynomial.C r, (MvPolynomial.coe_C r) ▸ rfl⟩
+  have eq_aux : this.choose = MvPolynomial.C r := by
+    obtain h := this.choose_spec
+    conv_rhs at h => rw [← MvPolynomial.coe_C]
+    norm_cast at h
+  simp_rw [subst, MvPowerSeries.eval₂, dif_pos this, eq_aux,
+    MvPolynomial.eval₂_C]
+  rfl
+
 theorem subst_monomial (ha : HasSubst a) (e : σ →₀ ℕ) (r : R) :
     subst a (monomial e r) =
       (algebraMap R (MvPowerSeries τ S) r) * (e.prod (fun s n ↦ (a s) ^ n)) := by
