@@ -138,78 +138,31 @@ theorem constantCoeff_rename {τ : Type*} (f : σ → τ) (φ : MvPowerSeries σ
   · simp
   intro d hd
   simp only [comp_apply, ← monomial_mapDomain, smul_eq_mul]
-  rw [← coeff_zero_eq_constantCoeff_apply, coeff_monomial_ne, mul_zero]
-  intro h
-  have h_eq : Finsupp.mapDomain f d = 0 := h.symm
-
-  -- Prove d = 0 to contradict hd
-  apply hd
-  ext s
-
-  -- Evaluate the mapped Finsupp at the target point `f s`
-  have h_eval : (Finsupp.mapDomain f d) (f s) = 0 := by
-    rw [h_eq]
-    rfl
-
-  -- Expand the definition of mapDomain evaluation into a Finset sum
-  have h_sum : (d.support.filter (fun x ↦ f x = f s)).sum (fun x ↦ d x) = 0 := by
-    simp only [Finset.sum_eq_zero_iff, Finset.mem_filter, mem_support_iff, ne_eq, and_imp]
-    intro i hi heq
-    simp only [← heq] at h_eval
-    rw [Finsupp.mapDomain, Finsupp.sum_apply, Finsupp.sum] at h_eval
-    obtain h' := (Finset.sum_eq_zero_iff_of_nonneg (by simp)).mp h_eval
-
-    have : ∀ a₁ b, (Finsupp.single (f a₁) b) (f i) = 0 := by
-      obtain h' := (Finset.sum_eq_zero_iff_of_nonneg (by simp)).mp h_eval
-
-      sorry
-    -- rw [← Finsupp.mapDomain_apply]
-    -- exact h_eval
-    sorry
-  -- In ℕ, a sum is 0 if and only if every individual term is 0.
-  -- We split by whether `s` is actually in the support of `d`.
-  by_cases hs : s ∈ d.support
-
-  · -- Case 1: `s` is in the support.
-    -- It must also be in our filtered sum because f s = f s.
-    have hs_in_filter : s ∈ d.support.filter (fun x ↦ f x = f s) := by
-      rw [Finset.mem_filter]
-      exact ⟨hs, rfl⟩
-
-    -- Extract the specific term `d s` from the sum being 0
-    exact Finset.sum_eq_zero_iff.mp h_sum s hs_in_filter
-
-  · -- Case 2: `s` is not in the support.
-    -- By definition of Finsupp, its value is 0.
-    simpa using notMem_support_iff.mp hs
-  -- refine Finsupp.ne_iff.mpr ?_
-  -- by_contra! hc
-  -- simp only [coe_zero, Pi.zero_apply] at hc
-  -- have : d = 0 := by
-  --   sorry
-  -- simp [Finsupp.mapDomain]
-  -- exact (fun h => hd.symm (Finsupp.mapDomain_injective hf h))
-
-
-  -- sorry
-  -- apply φ.induction_on
-  -- · intro a
-  --   simp only [constantCoeff_C, rename_C]
-  -- · intro p q hp hq
-  --   simp only [hp, hq, map_add]
-  -- · intro p n hp
-  --   simp only [hp, rename_X, constantCoeff_X, map_mul]
+  rw [← coeff_zero_eq_constantCoeff_apply, coeff_monomial_ne _ _, mul_zero]
+  have ⟨i, hi⟩ : ∃ i, d i ≠ 0 := Finsupp.ne_iff.mp hd
+  refine Finsupp.ne_iff.mpr ⟨f i, ?_⟩
+  have : 1 ≤ ∑ a ∈ d.support, (Finsupp.single (f a) (d a)) (f i) :=
+    .trans ((Finsupp.single_eq_same (b := d i)).symm ▸ Nat.one_le_iff_ne_zero.mpr hi)
+      (Finset.single_le_sum (by simp) (mem_support_iff.mpr hi))
+  simp [Finsupp.mapDomain, Finsupp.sum, Nat.ne_of_lt this]
 
 end Coeff
 
 section Support
 
-theorem support_rename_of_injective {p : MvPowerSeries σ R} {f : σ → τ} [DecidableEq τ]
-    (h : Function.Injective f) :
+theorem support_rename_of_injective {p : MvPowerSeries σ R} {f : σ → τ}
+    (hf : Function.Injective f) :
     (rename f p).support = Set.image (Finsupp.mapDomain f) p.support := by
-  sorry
-  -- rw [rename_eq]
-  -- exact Finsupp.mapDomain_support_of_injective (Finsupp.mapDomain_injective h) _
+  ext d
+  simp only [mem_support, mem_image]
+  constructor
+  · intro h
+    have ⟨x, hx⟩ : ∃ x, Finsupp.mapDomain f x = d := by
+      by_contra! hc
+      exact h <| coeff_rename_eq_zero _ _ _ fun u hu => absurd hu (hc u)
+    exact ⟨x, by simpa [← coeff_apply p, ← coeff_rename_mapDomain _ _ hf, hx, coeff_apply], hx⟩
+  intro ⟨x, ⟨h_coeff, h⟩⟩
+  simpa [← coeff_apply (rename f p), ← h, coeff_rename_mapDomain _ _ hf, coeff_apply]
 
 end Support
 
@@ -302,64 +255,5 @@ theorem renameEquiv_trans (e : σ ≃ τ) (f : τ ≃ α) :
 end
 
 end Rename
-
--- section Coeff
-
--- @[simp]
--- theorem coeff_rename_mapDomain (f : σ → τ) (hf : Injective f) (φ : MvPolynomial σ R) (d : σ →₀ ℕ) :
---     (rename f φ).coeff (d.mapDomain f) = φ.coeff d := by
---   classical
---   apply φ.induction_on' (P := fun ψ => coeff (Finsupp.mapDomain f d) ((rename f) ψ) = coeff d ψ)
---   -- Lean could no longer infer the motive
---   · intro u r
---     rw [rename_monomial, coeff_monomial, coeff_monomial]
---     simp only [(Finsupp.mapDomain_injective hf).eq_iff]
---   · intros
---     simp only [*, map_add, coeff_add]
-
--- @[simp]
--- theorem coeff_rename_embDomain (f : σ ↪ τ) (φ : MvPolynomial σ R) (d : σ →₀ ℕ) :
---     (rename f φ).coeff (d.embDomain f) = φ.coeff d := by
---   rw [Finsupp.embDomain_eq_mapDomain f, coeff_rename_mapDomain f f.injective]
-
--- theorem coeff_rename_eq_zero (f : σ → τ) (φ : MvPolynomial σ R) (d : τ →₀ ℕ)
---     (h : ∀ u : σ →₀ ℕ, u.mapDomain f = d → φ.coeff u = 0) : (rename f φ).coeff d = 0 := by
---   classical
---   rw [rename_eq, ← notMem_support_iff]
---   intro H
---   replace H := mapDomain_support H
---   rw [Finset.mem_image] at H
---   obtain ⟨u, hu, rfl⟩ := H
---   specialize h u rfl
---   rw [Finsupp.mem_support_iff] at hu
---   contradiction
-
--- theorem coeff_rename_ne_zero (f : σ → τ) (φ : MvPolynomial σ R) (d : τ →₀ ℕ)
---     (h : (rename f φ).coeff d ≠ 0) : ∃ u : σ →₀ ℕ, u.mapDomain f = d ∧ φ.coeff u ≠ 0 := by
---   contrapose! h
---   apply coeff_rename_eq_zero _ _ _ h
-
--- @[simp]
--- theorem constantCoeff_rename {τ : Type*} (f : σ → τ) (φ : MvPolynomial σ R) :
---     constantCoeff (rename f φ) = constantCoeff φ := by
---   apply φ.induction_on
---   · intro a
---     simp only [constantCoeff_C, rename_C]
---   · intro p q hp hq
---     simp only [hp, hq, map_add]
---   · intro p n hp
---     simp only [hp, rename_X, constantCoeff_X, map_mul]
-
--- end Coeff
-
--- section Support
-
--- theorem support_rename_of_injective {p : MvPolynomial σ R} {f : σ → τ} [DecidableEq τ]
---     (h : Function.Injective f) :
---     (rename f p).support = Finset.image (Finsupp.mapDomain f) p.support := by
---   rw [rename_eq]
---   exact Finsupp.mapDomain_support_of_injective (Finsupp.mapDomain_injective h) _
-
--- end Support
 
 end MvPowerSeries

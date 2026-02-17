@@ -390,6 +390,8 @@ theorem toMvPowerSeries_C : (C r).toMvPowerSeries i = MvPowerSeries.C r := by
 theorem toMvPowerSeries_X : X.toMvPowerSeries i = MvPowerSeries.X i (R := R) := by
   rw [toMvPowerSeries_apply, subst_X (HasSubst.X i)]
 
+/- TODO: some API related to rename. -/
+
 end toMvPowerSeries
 
 end PowerSeries
