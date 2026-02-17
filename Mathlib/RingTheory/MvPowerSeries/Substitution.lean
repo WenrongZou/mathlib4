@@ -130,6 +130,15 @@ theorem HasSubst.smul_X (a : σ → R) :
   convert HasSubst.X.mul_left (fun s ↦ algebraMap R (MvPowerSeries σ R) (a s))
   simp [funext_iff, algebra_compatible_smul (MvPowerSeries σ R)]
 
+omit [Algebra R S] in
+lemma HasSubst.map {a : σ → MvPowerSeries τ R} (ha : HasSubst a) (h : R →+* S) :
+    HasSubst fun i ↦ (map h) (a i) where
+  const_coeff s := (ha.const_coeff s).map h
+  coeff_zero d := Set.Finite.subset (ha.coeff_zero d) fun s hs => by
+    simp only [coeff_map, ne_eq, Set.mem_setOf_eq] at ⊢ hs
+    by_contra hc
+    simp [hc] at hs
+
 /-- Families of `MvPowerSeries` that can be substituted, as an `Ideal` -/
 noncomputable def hasSubstIdeal : Ideal (σ → MvPowerSeries τ S) :=
   { carrier := setOf HasSubst
@@ -321,14 +330,13 @@ theorem map_algebraMap_eq_subst_X (f : MvPowerSeries σ R) :
     rw [← MvPowerSeries.monomial_one_eq, coeff_monomial_ne hd.symm, smul_zero]
 
 omit [Algebra R S] in
-theorem map_subst [Finite σ] {a : σ → MvPowerSeries τ R} (ha : HasSubst a) {h : R →+* S}
+theorem map_subst {a : σ → MvPowerSeries τ R} (ha : HasSubst a) {h : R →+* S}
     (f : MvPowerSeries σ R) :
     (f.subst a).map h = (f.map h).subst (fun i => (a i).map h) := by
   ext n
   have {r : R} : h r = h.toAddMonoidHom r := rfl
-  rw [coeff_subst <| hasSubst_of_constantCoeff_nilpotent fun s => (ha.const_coeff s).map h,
-    coeff_map, coeff_subst ha, this, AddMonoidHom.map_finsum _ (coeff_subst_finite ha _ _),
-      finsum_congr]
+  rw [coeff_subst (ha.map h), coeff_map, coeff_subst ha, this, AddMonoidHom.map_finsum _
+    (coeff_subst_finite ha _ _), finsum_congr]
   intro d
   simp [smul_eq_mul, RingHom.toAddMonoidHom_eq_coe, AddMonoidHom.coe_coe, map_mul,
     ← coeff_map, Finsupp.prod]
