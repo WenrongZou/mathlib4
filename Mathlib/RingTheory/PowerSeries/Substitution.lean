@@ -522,7 +522,7 @@ lemma coeff_one_substInv : P.substInv.coeff 1 = ⅟ (P.coeff 1) := by
   simp [substInv, substInvFun]
 
 include hP in
-lemma subst_substInv_left : P.substInv.subst P = X := by
+lemma Invertible.subst_substInv_left : P.substInv.subst P = X := by
   have hP' : HasSubst P := by simp [HasSubst, ← constantCoeff.eq_def, hP]
   let Q : PowerSeries R := P.substInv.subst P
   have : Invertible (Q.coeff 1) := by
@@ -548,6 +548,11 @@ lemma subst_substInv_left : P.substInv.subst P = X := by
     congr! with ⟨⟩
     exact (PowerSeries.subst_substInv_right Q hQ).symm
   · exact (PowerSeries.subst_substInv_right Q hQ).symm
+
+lemma IsUnit.subst_substInv_left (P : R⟦X⟧) (hP : P.constantCoeff = 0) (hP' : IsUnit (P.coeff 1)) :
+    letI := IsUnit.invertible hP'
+    P.substInv.subst P = X :=
+  @Invertible.subst_substInv_left R _ P hP hP'.invertible
 
 end substInv
 
