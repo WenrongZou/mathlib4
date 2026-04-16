@@ -7,6 +7,7 @@ Authors: Bingyu Xia
 module
 
 public import Mathlib.Algebra.Category.LocAlgCat.Defs
+public import Mathlib.RingTheory.AdicCompletion.LocalRing
 
 /-!
 # Basic Constructions and Lemmas in `LocAlgCat`
@@ -227,5 +228,42 @@ lemma algebraMap_specialFiber_apply_eq_zero [IsLocalRing Λ] [IsLocalHom (algebr
   exact Ideal.Quotient.eq_zero_iff_mem.mpr (Ideal.mem_map_of_mem _ y_in)
 
 end ofQuot
+
+section ofAdicCompletion
+
+variable (A : LocAlgCat.{w} Λ k)
+
+noncomputable
+instance : Algebra (AdicCompletion (maximalIdeal A) A) k :=
+  ((residueEquiv A).toRingHom.comp <| (AdicCompletion.evalOneₐ _).toRingHom).toAlgebra
+
+instance : IsScalarTower Λ (AdicCompletion (maximalIdeal ↑A) ↑A) k := by
+
+  sorry
+
+open AdicCompletion in
+noncomputable def ofAdicCompletion (A : LocAlgCat.{w} Λ k) [IsNoetherianRing A] :
+    LocAlgCat.{w} Λ k :=
+  have surj : Surjective ⇑(algebraMap (AdicCompletion (maximalIdeal A) A) k) := by
+    refine (Surjective.of_comp_iff' A.residueEquiv.bijective _).mpr ?_
+    let f := (AdicCompletion.evalOneₐ (maximalIdeal ↑A)).toRingHom
+    let g := (IsLocalRing.ResidueField.map (algebraMap A (AdicCompletion (maximalIdeal A) A)))
+    have : Surjective (g ∘ f) := by
+      have : g ∘ f = IsLocalRing.residue (AdicCompletion (maximalIdeal A) A) := by
+        ext n
+        have {x : A.carrier} : (algebraMap (↑A) (AdicCompletion (maximalIdeal ↑A) ↑A)) x
+          = (AdicCompletion.of (maximalIdeal A) A) x := rfl
+        simp [g, f]
+
+        -- rw [this]
+        sorry
+      rw [this]
+      exact IsLocalRing.residue_surjective
+    have g_equiv : Bijective g := AdicCompletion.residueField_map_bijective ↑A
+    exact (Surjective.of_comp_iff' (AdicCompletion.residueField_map_bijective ↑A) _).mp this
+
+  of Λ k (AdicCompletion (maximalIdeal A) A) surj
+
+end ofAdicCompletion
 
 end LocAlgCat
