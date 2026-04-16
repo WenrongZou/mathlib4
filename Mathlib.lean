@@ -145,6 +145,10 @@ public import Mathlib.Algebra.Category.Grp.Zero
 public import Mathlib.Algebra.Category.GrpWithZero
 public import Mathlib.Algebra.Category.HopfAlgCat.Basic
 public import Mathlib.Algebra.Category.HopfAlgCat.Monoidal
+public import Mathlib.Algebra.Category.LocAlgCat.BaseCat
+public import Mathlib.Algebra.Category.LocAlgCat.Basic
+public import Mathlib.Algebra.Category.LocAlgCat.Cotangent
+public import Mathlib.Algebra.Category.LocAlgCat.Defs
 public import Mathlib.Algebra.Category.ModuleCat.AB
 public import Mathlib.Algebra.Category.ModuleCat.Abelian
 public import Mathlib.Algebra.Category.ModuleCat.Adjunctions
@@ -489,6 +493,7 @@ public import Mathlib.Algebra.Group.Units.Defs
 public import Mathlib.Algebra.Group.Units.Equiv
 public import Mathlib.Algebra.Group.Units.Hom
 public import Mathlib.Algebra.Group.Units.Opposite
+public import Mathlib.Algebra.Group.Units.ULift
 public import Mathlib.Algebra.Group.WithOne.Basic
 public import Mathlib.Algebra.Group.WithOne.Defs
 public import Mathlib.Algebra.Group.WithOne.Map
