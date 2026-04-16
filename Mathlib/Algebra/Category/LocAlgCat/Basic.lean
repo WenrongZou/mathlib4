@@ -10,6 +10,7 @@ public import Mathlib.Algebra.Category.LocAlgCat.Defs
 public import Mathlib.RingTheory.AdicCompletion.LocalRing
 public import Mathlib.RingTheory.TensorProduct.Maps
 public import Mathlib.RingTheory.KrullDimension.Zero
+public import Mathlib.RingTheory.HopkinsLevitzki
 
 /-!
 # Basic Constructions and Lemmas in `LocAlgCat`
@@ -237,31 +238,6 @@ variable {C : LocAlgCat Λ k}
 
 open Algebra TensorProduct
 
--- def ofSelf [IsLocalRing Λ] [IsLocalHom (algebraMap Λ k)] : LocAlgCat Λ k :=
---   have surj : Surjective (algebraMap Λ k) := by
-
---     sorry
---   of Λ k Λ surj
-
--- instance (f : A ⟶ B) : Algebra A B := RingHom.toAlgebra f.toAlgHom
-
--- instance (g : A ⟶ C) : Algebra A C := RingHom.toAlgebra g.toAlgHom
-
-
--- instance (f : A ⟶ B) (g : A ⟶ C) :
---     letI : Algebra A B := RingHom.toAlgebra f.toAlgHom
---     letI : Algebra A C := RingHom.toAlgebra g.toAlgHom
---     Algebra (B ⊗[A] C) k := by
---   letI : Algebra A B := RingHom.toAlgebra f.toAlgHom
---   letI : Algebra A C := RingHom.toAlgebra g.toAlgHom
---   letI : B →ₐ[A] k := .mk (algebraMap B k) (AlgHom.congr_fun f.residue_comp)
---   refine (Algebra.TensorProduct.lift
---     (.mk (algebraMap B k) (AlgHom.congr_fun f.residue_comp))
---     (.mk (algebraMap C k) (AlgHom.congr_fun g.residue_comp))
---     (fun _ _ => mul_comm _ _)).toRingHom.toAlgebra
-
-#check AlgHom.commutes
-
 lemma isLocalRing_of_isMaximal_isNilpotent {R : Type*} [CommRing R] {I : Ideal R}
     (hmax : I.IsMaximal) (hnil : IsNilpotent I) : IsLocalRing R := by
   obtain ⟨n, hn⟩ := hnil
@@ -288,6 +264,12 @@ lemma isLocalRing_of_isMaximal_isNilpotent {R : Type*} [CommRing R] {I : Ideal R
     · left
       exact this ha
 
+lemma IsNilpotent.ideal_sup {R : Type*} [CommSemiring R] {I J : Ideal R}
+    (hI : IsNilpotent I) (hJ : IsNilpotent J) : IsNilpotent (I ⊔ J) := by
+  obtain ⟨n, hn⟩ := hI
+  obtain ⟨m, hm⟩ := hJ
+  exact ⟨n + m, le_bot_iff.mp (Ideal.sup_pow_add_le_pow_sup_pow.trans (by simp [hn, hm]))⟩
+
 noncomputable def ofTensor (f : A ⟶ B) (g : A ⟶ C)
     [IsArtinianRing B] [IsArtinianRing C] : LocAlgCat.{w} Λ k :=
   letI : Algebra A B := RingHom.toAlgebra f.toAlgHom
@@ -310,23 +292,26 @@ noncomputable def ofTensor (f : A ⟶ B) (g : A ⟶ C)
   have φ_surj : Surjective φ.toRingHom := fun y => by
     obtain ⟨b, hb⟩ := B.surj y
     exact ⟨Algebra.TensorProduct.includeLeft (S := A) b, by simp [φ, hb]⟩
-  have isNil : IsNilpotent (RingHom.ker φ.toRingHom) := sorry
-  -- haveI : (nilradical (B ⊗[A] C)).IsMaximal := by
-  --   have isNil : IsNilpotent (RingHom.ker φ.toRingHom) := by
-
-  --     sorry
-  --   have isMax : Ideal.IsMaximal (RingHom.ker φ.toRingHom) :=
-  --     RingHom.ker_isMaximal_of_surjective _ φ_surj
-  --   have : (RingHom.ker φ.toRingHom) ≤ (nilradical (B ⊗[A] C)) := by
-  --     intro x hx
-  --     obtain ⟨n, hn⟩ := isNil
-  --     exact ⟨n, hn ▸ (Submodule.pow_mem_pow (RingHom.ker φ.toRingHom) hx n)⟩
-  --   have : (nilradical (B ⊗[A] C)) ≠ ⊤ := by
-  --     have : (RingHom.ker φ.toRingHom) ≠ ⊤ := by
-  --       exact RingHom.ker_ne_top φ.toRingHom
-
-  --     sorry
-  --   sorry
+  have isNil : IsNilpotent (RingHom.ker φ.toRingHom) := by
+    have hB_nil : IsNilpotent (maximalIdeal B) :=
+      (isArtinianRing_iff_isNilpotent_maximalIdeal B).mp inferInstance
+    have hC_nil : IsNilpotent (maximalIdeal C) :=
+      (isArtinianRing_iff_isNilpotent_maximalIdeal C).mp inferInstance
+    let iL : ↑B →+* B ⊗[A] C :=
+      (includeLeft (S := ↑A) (A := ↑B) (B := ↑C)).toRingHom
+    let iR : ↑C →+* B ⊗[A] C :=
+      (Algebra.TensorProduct.includeRight (R := ↑A) (A := ↑B) (B := ↑C)).toRingHom
+    have I_B_nil : IsNilpotent ((maximalIdeal B).map iL) := by
+      obtain ⟨n, hn⟩ := hB_nil
+      exact ⟨n, by simp [← Ideal.map_pow, hn]⟩
+    have I_C_nil : IsNilpotent ((maximalIdeal C).map iR) := by
+      obtain ⟨n, hn⟩ := hC_nil
+      exact ⟨n, by simp [← Ideal.map_pow, hn]⟩
+    have sup_nil := IsNilpotent.ideal_sup I_B_nil I_C_nil
+    have ker_le : RingHom.ker φ.toRingHom ≤ (maximalIdeal B).map iL ⊔ (maximalIdeal C).map iR := by
+      sorry
+    obtain ⟨N, hN⟩ := sup_nil
+    exact ⟨N, le_bot_iff.mp (le_trans (Ideal.pow_right_mono ker_le N) (le_of_eq hN))⟩
   haveI : IsLocalRing (B ⊗[A] C) := isLocalRing_of_isMaximal_isNilpotent
     (RingHom.ker_isMaximal_of_surjective _ φ_surj) isNil
   of Λ k (B ⊗[A] C) φ_surj
