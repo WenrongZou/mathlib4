@@ -425,6 +425,97 @@ namespace IsValuativeTopology
 
 variable [TopologicalSpace R] [IsValuativeTopology R]
 
+section Subgroup
+
+/-- The open ball of radius `γ` around zero is open, as an additive subgroup. -/
+lemma isOpen_ltAddSubgroup (γ : (ValueGroupWithZero R)ˣ) :
+    IsOpen ((valuation R).ltAddSubgroup γ : Set R) :=
+  AddSubgroup.isOpen_of_mem_nhds _ ((hasBasis_nhds_zero R).mem_of_mem (i := γ) trivial)
+
+/-- The open ball of radius `γ` around zero is closed, as an additive subgroup. -/
+lemma isClosed_ltAddSubgroup (γ : (ValueGroupWithZero R)ˣ) :
+    IsClosed ((valuation R).ltAddSubgroup γ : Set R) :=
+  AddSubgroup.isClosed_of_isOpen _ (isOpen_ltAddSubgroup γ)
+
+lemma isClopen_ltAddSubgroup (γ : (ValueGroupWithZero R)ˣ) :
+    IsClopen ((valuation R).ltAddSubgroup γ : Set R) :=
+  ⟨isClosed_ltAddSubgroup γ, isOpen_ltAddSubgroup γ⟩
+
+/-- The closed ball of nonzero radius `γ` around zero is open, as an additive subgroup. -/
+lemma isOpen_leAddSubgroup {γ : ValueGroupWithZero R} (hγ : γ ≠ 0) :
+    IsOpen ((valuation R).leAddSubgroup γ : Set R) :=
+  AddSubgroup.isOpen_of_mem_nhds _ <| Filter.mem_of_superset
+    ((hasBasis_nhds_zero R).mem_of_mem (i := Units.mk0 γ hγ) trivial)
+    fun x hx ↦ show valuation R x ≤ γ from le_of_lt hx
+
+lemma isClosed_leAddSubgroup {γ : ValueGroupWithZero R} (hγ : γ ≠ 0) :
+    IsClosed ((valuation R).leAddSubgroup γ : Set R) :=
+  AddSubgroup.isClosed_of_isOpen _ (isOpen_leAddSubgroup hγ)
+
+lemma isClopen_leAddSubgroup {γ : ValueGroupWithZero R} (hγ : γ ≠ 0) :
+    IsClopen ((valuation R).leAddSubgroup γ : Set R) :=
+  ⟨isClosed_leAddSubgroup hγ, isOpen_leAddSubgroup hγ⟩
+
+lemma isOpen_ltSubmodule (γ : (ValueGroupWithZero R)ˣ) :
+    IsOpen ((valuation R).ltSubmodule γ : Set R) :=
+  isOpen_ltAddSubgroup γ
+
+lemma isClosed_ltSubmodule (γ : (ValueGroupWithZero R)ˣ) :
+    IsClosed ((valuation R).ltSubmodule γ : Set R) :=
+  isClosed_ltAddSubgroup γ
+
+lemma isClopen_ltSubmodule (γ : (ValueGroupWithZero R)ˣ) :
+    IsClopen ((valuation R).ltSubmodule γ : Set R) :=
+  isClopen_ltAddSubgroup γ
+
+lemma isOpen_leSubmodule {γ : ValueGroupWithZero R} (hγ : γ ≠ 0) :
+    IsOpen ((valuation R).leSubmodule γ : Set R) :=
+  isOpen_leAddSubgroup hγ
+
+lemma isClosed_leSubmodule {γ : ValueGroupWithZero R} (hγ : γ ≠ 0) :
+    IsClosed ((valuation R).leSubmodule γ : Set R) :=
+  isClosed_leAddSubgroup hγ
+
+lemma isClopen_leSubmodule {γ : ValueGroupWithZero R} (hγ : γ ≠ 0) :
+    IsClopen ((valuation R).leSubmodule γ : Set R) :=
+  isClopen_leAddSubgroup hγ
+
+lemma isOpen_ltIdeal (γ : (ValueGroupWithZero R)ˣ) :
+    IsOpen ((valuation R).ltIdeal γ : Set (valuation R).integer) :=
+  (isOpen_ltAddSubgroup γ).preimage continuous_subtype_val
+
+lemma isClosed_ltIdeal (γ : (ValueGroupWithZero R)ˣ) :
+    IsClosed ((valuation R).ltIdeal γ : Set (valuation R).integer) :=
+  (isClosed_ltAddSubgroup γ).preimage continuous_subtype_val
+
+lemma isClopen_ltIdeal (γ : (ValueGroupWithZero R)ˣ) :
+    IsClopen ((valuation R).ltIdeal γ : Set (valuation R).integer) :=
+  ⟨isClosed_ltIdeal γ, isOpen_ltIdeal γ⟩
+
+lemma isOpen_leIdeal {γ : ValueGroupWithZero R} (hγ : γ ≠ 0) :
+    IsOpen ((valuation R).leIdeal γ : Set (valuation R).integer) :=
+  (isOpen_leAddSubgroup hγ).preimage continuous_subtype_val
+
+lemma isClosed_leIdeal {γ : ValueGroupWithZero R} (hγ : γ ≠ 0) :
+    IsClosed ((valuation R).leIdeal γ : Set (valuation R).integer) :=
+  (isClosed_leAddSubgroup hγ).preimage continuous_subtype_val
+
+lemma isClopen_leIdeal {γ : ValueGroupWithZero R} (hγ : γ ≠ 0) :
+    IsClopen ((valuation R).leIdeal γ : Set (valuation R).integer) :=
+  ⟨isClosed_leIdeal hγ, isOpen_leIdeal hγ⟩
+
+/-- The ring of integers of a ring carrying a valuative topology is open in it. -/
+lemma isOpenEmbedding_subtype_integer :
+    Topology.IsOpenEmbedding (Subtype.val : (valuation R).integer → R) :=
+  (Valuation.isOpen_integer (v := valuation R)).isOpenEmbedding_subtypeVal
+
+/-- The ring of integers of a ring carrying a valuative topology is closed in it. -/
+lemma isClosedEmbedding_subtype_integer :
+    Topology.IsClosedEmbedding (Subtype.val : (valuation R).integer → R) :=
+  (Valuation.isClosed_integer (v := valuation R)).isClosedEmbedding_subtypeVal
+
+end Subgroup
+
 section SMul
 
 variable {O : Type*} [Ring O] [Module O R]
@@ -460,6 +551,16 @@ section Integers
 variable {A : Type*} [CommRing A] [ValuativeRel A] [TopologicalSpace A] [IsValuativeTopology A]
     {O : Type*} [CommRing O] [Algebra O A]
 
+omit [TopologicalSpace A] [IsValuativeTopology A] in
+/-- A ring of integers for a compatible valuation is a ring of integers for the canonical
+valuation of the valuative relation. -/
+theorem _root_.Valuation.Integers.of_compatible {Γ₀ : Type*} [LinearOrderedCommGroupWithZero Γ₀]
+    {v : Valuation A Γ₀} [v.Compatible] (hO : v.Integers O) : (valuation A).Integers O where
+  hom_inj := hO.hom_inj
+  map_le_one x := (Valuation.vle_one_iff _).mp ((Valuation.vle_one_iff v).mpr (hO.map_le_one x))
+  exists_of_le_one _ h :=
+    hO.exists_of_le_one ((Valuation.vle_one_iff v).mp ((Valuation.vle_one_iff _).mpr h))
+
 /-- If `O` is a ring of integers for the valuative relation on `A`, in the sense of
 `Valuation.Integers`, then the topology on `A` is `O`-linear. Contrary to the instance for
 `(valuation A).integer`, this only needs `O` to be *propositionally* the ring of integers. -/
@@ -476,6 +577,28 @@ theorem _root_.Valuation.Integers.isLinearTopology_self [TopologicalSpace O]
   .of_valuation_smul_le_of_isInducing hO.smul_le (Algebra.linearMap O A) hf
 
 end Integers
+
+section ValuationRing
+
+variable {K : Type*} [Field K] [ValuativeRel K] [TopologicalSpace K] [IsValuativeTopology K]
+    {O : Type*} [CommRing O] [IsDomain O] [ValuationRing O] [Algebra O K] [IsFractionRing O K]
+    [(ValuationRing.valuation O K).Compatible]
+
+/-- If `O` is a valuation ring with fraction field `K`, whose induced valuation is compatible with
+the valuative relation on `K`, then the topology on `K` is `O`-linear.
+
+All the hypotheses are typeclasses, so this applies automatically to any concrete valuation ring
+registered as such, without having to identify it with `(valuation K).integer`. -/
+instance _root_.ValuationRing.isLinearTopology : IsLinearTopology O K :=
+  (ValuationRing.integers O K).of_compatible.isLinearTopology
+
+/-- The topology induced on a valuation ring `O` with fraction field `K` by `algebraMap O K`
+is `O`-linear. -/
+theorem _root_.ValuationRing.isLinearTopology_self [TopologicalSpace O]
+    (hf : Topology.IsInducing (algebraMap O K)) : IsLinearTopology O O :=
+  (ValuationRing.integers O K).of_compatible.isLinearTopology_self hf
+
+end ValuationRing
 
 /-- The topology on a ring `R` carrying a valuative topology is linear over its ring of integers:
 the open balls `Valuation.ltSubmodule (valuation R) γ` form a basis of neighborhoods of zero

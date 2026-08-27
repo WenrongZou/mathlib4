@@ -351,6 +351,21 @@ instance (priority := 100) [IsLinearTopology R R] :
     IsLinearTopology Rᵐᵒᵖ R := by
   rwa [IsCentralScalar.isLinearTopology_iff]
 
+/-- If `R` is a linearly topologized ring which embeds into a topological ring `K` as an open
+subring, then the topology of `K` is `R`-linear: the images of the open ideals of `R` form a basis
+of neighborhoods of zero made of `R`-submodules of `K`. -/
+lemma of_isOpenEmbedding [ContinuousAdd R] [IsLinearTopology R R]
+    {K : Type*} [CommRing K] [TopologicalSpace K] [ContinuousAdd K] [Algebra R K]
+    (h : Topology.IsOpenEmbedding (algebraMap R K)) :
+    IsLinearTopology R K := by
+  rw [isLinearTopology_iff_hasBasis_open_submodule] at *
+  rw [show (0 : K) = algebraMap R K 0 by simp,
+    ← h.isOpenMap.map_nhds_eq h.continuous.continuousAt]
+  refine (‹(𝓝 (0 : R)).HasBasis _ _›.map (algebraMap R K)).to_hasBasis (fun I hI ↦ ?_)
+    (fun I hI ↦ ⟨I.comap (Algebra.linearMap R K), h.continuous.isOpen_preimage _ hI, by
+      rw [Set.image_subset_iff]; exact subset_rfl⟩)
+  exact ⟨I.map (Algebra.linearMap R K), h.isOpen_iff_image_isOpen.mp hI, subset_rfl⟩
+
 end CommRing
 
 end IsLinearTopology

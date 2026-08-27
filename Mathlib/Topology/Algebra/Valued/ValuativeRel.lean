@@ -6,6 +6,7 @@ Authors: Yakov Pechersky
 module
 
 public import Mathlib.Topology.Algebra.ValuativeRel.ValuativeTopology
+public import Mathlib.Topology.Algebra.Valued.ValuedField
 public import Mathlib.Topology.Algebra.WithZeroTopology
 
 /-!
@@ -79,6 +80,23 @@ lemma continuous_valuation : Continuous v := by
   · simpa [((valuation R).hasBasis_nhds _).tendsto_iff (hasBasis_nhds_of_ne_zero hx)]
       using ⟨(Units.mk0 (v x) hx).mapEquiv (ValueGroupWithZero.orderMonoidIso (valuation R)),
         fun _ ↦ by simpa [← (valuation R).restrict_def] using Valuation.map_eq_of_sub_lt _⟩
+
+/-- The ring of integers of a valued field is discrete if and only if the field is. -/
+lemma discreteTopology_integer_iff {K : Type*} [Field K] [ValuativeRel K] [UniformSpace K]
+    [IsUniformAddGroup K] [IsValuativeTopology K] :
+    DiscreteTopology (valuation K).integer ↔ DiscreteTopology K := by
+  refine ⟨fun _ ↦ discreteTopology_iff_isOpen_singleton.mpr fun x ↦ ?_, fun _ ↦ inferInstance⟩
+  have hk : IsOpen ((valuation K).integer : Set K) := Valuation.isOpen_integer
+  rcases le_total (valuation K x) 1 with hx | hx
+  · simpa using hk.isOpenMap_subtype_val _ (isOpen_discrete {(⟨x, hx⟩ : (valuation K).integer)})
+  · have hx0 : x ≠ 0 := (valuation K).pos_iff.mp <| hx.trans_lt' zero_lt_one
+    replace hx : valuation K x⁻¹ ≤ 1 := by
+      rwa [map_inv₀, inv_le_one₀ (zero_lt_one.trans_le hx)]
+    have h2 : IsOpen {x⁻¹} := by
+      simpa using hk.isOpenMap_subtype_val _
+        (isOpen_discrete {(⟨x⁻¹, hx⟩ : (valuation K).integer)})
+    simp only [isOpen_iff_mem_nhds, Set.mem_singleton_iff, forall_eq] at h2
+    simpa [isOpen_iff_mem_nhds, -Filter.map_inv] using continuousAt_inv₀ hx0 h2
 
 end IsValuativeTopology
 

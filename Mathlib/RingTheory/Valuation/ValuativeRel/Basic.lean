@@ -723,6 +723,14 @@ lemma isEquiv {Γ₁ Γ₂ : Type*}
   intro x y
   simp_rw [← Valuation.Compatible.vle_iff_le]
 
+/-- A valuation equivalent to a compatible valuation is itself compatible. -/
+lemma _root_.Valuation.Compatible.of_isEquiv {Γ₁ Γ₂ : Type*}
+    [LinearOrderedCommMonoidWithZero Γ₁]
+    [LinearOrderedCommMonoidWithZero Γ₂]
+    {v₁ : Valuation R Γ₁} {v₂ : Valuation R Γ₂} [v₁.Compatible]
+    (h : v₁.IsEquiv v₂) : v₂.Compatible where
+  vle_iff_le x y := (Valuation.Compatible.vle_iff_le (v := v₁) x y).trans (h x y)
+
 end Valuation
 
 end ValuativeRel
