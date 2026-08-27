@@ -6,6 +6,7 @@ Authors: Jiedong Jiang
 module
 
 public import Mathlib.RingTheory.Valuation.ValuativeRel.Basic
+public import Mathlib.Topology.Algebra.LinearTopology
 public import Mathlib.Topology.Algebra.Valued.ValuationTopology
 
 /-!
@@ -421,6 +422,74 @@ end TopologicalSpace
 end Valuation
 
 namespace IsValuativeTopology
+
+variable [TopologicalSpace R] [IsValuativeTopology R]
+
+section SMul
+
+variable {O : Type*} [Ring O] [Module O R]
+
+/-- If a ring `O` acts on a ring `R` carrying a valuative topology without increasing the
+valuation, then the topology on `R` is `O`-linear: the open balls
+`Valuation.ltSubmoduleOfSMulLe (valuation R) h γ` form a basis of neighborhoods of zero made of
+`O`-submodules.
+
+This is stated for an arbitrary such `O`, rather than for `(valuation R).integer`, so that it
+applies to rings that are only propositionally, and not definitionally, the ring of integers. -/
+theorem _root_.IsLinearTopology.of_valuation_smul_le
+    (h : ∀ (o : O) (x : R), valuation R (o • x) ≤ valuation R x) : IsLinearTopology O R :=
+  IsLinearTopology.mk_of_hasBasis O (p := fun _ : (ValueGroupWithZero R)ˣ ↦ True)
+    (s := (valuation R).ltSubmoduleOfSMulLe h) (IsValuativeTopology.hasBasis_nhds_zero R)
+
+/-- If a ring `O` acts on a ring `R` carrying a valuative topology without increasing the
+valuation, and if `O` carries the topology induced by an `O`-linear map `f : O →ₗ[O] R`, then the
+topology on `O` is `O`-linear: the preimages under `f` of the open balls of `R` form a basis of
+neighborhoods of zero made of left ideals. -/
+theorem _root_.IsLinearTopology.of_valuation_smul_le_of_isInducing [TopologicalSpace O]
+    (h : ∀ (o : O) (x : R), valuation R (o • x) ≤ valuation R x)
+    (f : O →ₗ[O] R) (hf : Topology.IsInducing f) : IsLinearTopology O O := by
+  refine IsLinearTopology.mk_of_hasBasis O (p := fun _ : (ValueGroupWithZero R)ˣ ↦ True)
+    (s := fun γ ↦ ((valuation R).ltSubmoduleOfSMulLe h γ).comap f) ?_
+  rw [hf.nhds_eq_comap, map_zero]
+  exact (IsValuativeTopology.hasBasis_nhds_zero R).comap _
+
+end SMul
+
+section Integers
+
+variable {A : Type*} [CommRing A] [ValuativeRel A] [TopologicalSpace A] [IsValuativeTopology A]
+    {O : Type*} [CommRing O] [Algebra O A]
+
+/-- If `O` is a ring of integers for the valuative relation on `A`, in the sense of
+`Valuation.Integers`, then the topology on `A` is `O`-linear. Contrary to the instance for
+`(valuation A).integer`, this only needs `O` to be *propositionally* the ring of integers. -/
+theorem _root_.Valuation.Integers.isLinearTopology (hO : (valuation A).Integers O) :
+    IsLinearTopology O A :=
+  .of_valuation_smul_le hO.smul_le
+
+/-- If `O` is a ring of integers for the valuative relation on `A`, in the sense of
+`Valuation.Integers`, and carries the topology induced by `algebraMap O A`, then the topology
+on `O` is `O`-linear. -/
+theorem _root_.Valuation.Integers.isLinearTopology_self [TopologicalSpace O]
+    (hO : (valuation A).Integers O) (hf : Topology.IsInducing (algebraMap O A)) :
+    IsLinearTopology O O :=
+  .of_valuation_smul_le_of_isInducing hO.smul_le (Algebra.linearMap O A) hf
+
+end Integers
+
+/-- The topology on a ring `R` carrying a valuative topology is linear over its ring of integers:
+the open balls `Valuation.ltSubmodule (valuation R) γ` form a basis of neighborhoods of zero
+made of `(valuation R).integer`-submodules. -/
+instance : IsLinearTopology (valuation R).integer R :=
+  .of_valuation_smul_le (valuation R).valuation_integer_smul_le
+
+/-- The topology on the ring of integers of a ring `R` carrying a valuative topology is linear:
+the open balls `Valuation.ltIdeal (valuation R) γ` form a basis of neighborhoods of zero
+made of ideals. -/
+instance : IsLinearTopology (valuation R).integer (valuation R).integer :=
+  .of_valuation_smul_le_of_isInducing (valuation R).valuation_integer_smul_le
+    { toFun := Subtype.val, map_add' := fun _ _ ↦ rfl, map_smul' := fun _ _ ↦ rfl }
+    Topology.IsInducing.subtypeVal
 
 @[deprecated (since := "2026-03-17")] alias isOpen_ball := Valuation.isOpen_ball
 @[deprecated (since := "2026-03-17")] alias isClosed_ball := Valuation.isClosed_ball

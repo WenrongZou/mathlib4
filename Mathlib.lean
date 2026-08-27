@@ -5979,6 +5979,7 @@ public import Mathlib.NumberTheory.Padics.AddChar
 public import Mathlib.NumberTheory.Padics.Complex
 public import Mathlib.NumberTheory.Padics.HeightOneSpectrum
 public import Mathlib.NumberTheory.Padics.Hensel
+public import Mathlib.NumberTheory.Padics.LinearTopology
 public import Mathlib.NumberTheory.Padics.MahlerBasis
 public import Mathlib.NumberTheory.Padics.Measure.Basic
 public import Mathlib.NumberTheory.Padics.Measure.Topology
