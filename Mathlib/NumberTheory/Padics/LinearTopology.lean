@@ -52,6 +52,12 @@ instance : (ValuationRing.valuation ℤ_[p] ℚ_[p]).Compatible :=
 lemma integers : Valuation.Integers (ValuativeRel.valuation ℚ_[p]) ℤ_[p] :=
   (ValuationRing.integers ℤ_[p] ℚ_[p]).of_compatible
 
+-- the same statement for the concrete `ℤᵐ⁰`-valued `p`-adic valuation
+example : (Padic.mulValuation (p := p)).Integers ℤ_[p] where
+  hom_inj _ _ := PadicInt.ext
+  map_le_one x := Padic.mulValuation_le_one_iff_norm_le_one.mpr x.2
+  exists_of_le_one {r} hr := ⟨⟨r, Padic.mulValuation_le_one_iff_norm_le_one.mp hr⟩, rfl⟩
+
 /-- The topology of `ℤ_[p]` is linear. -/
 instance : IsLinearTopology ℤ_[p] ℤ_[p] :=
   ValuationRing.isLinearTopology_self isOpenEmbedding_coe.isInducing
@@ -59,5 +65,28 @@ instance : IsLinearTopology ℤ_[p] ℤ_[p] :=
 -- `IsLinearTopology ℤ_[p] ℚ_[p]` is found by typeclass inference,
 -- through `ValuationRing.isLinearTopology`.
 example : IsLinearTopology ℤ_[p] ℚ_[p] := inferInstance
+
+-- There is no global `ValuativeRel ℚ` instance: the relation depends on the choice of `p`.
+-- It can be built from any compatible valuation, e.g. the `p`-adic one.
+noncomputable example : ValuativeRel ℚ := .ofValuation (Rat.padicValuation p)
+
+set_option trace.Meta.synthInstance true in
+instance : ValuationRing ℤ_[p] := inferInstance
+
+section
+
+open ValuativeRel
+
+set_option trace.Meta.synthInstance true in
+example (R : Type*) [Ring R] [ValuativeRel R] [TopologicalSpace R] [IsValuativeTopology R] :
+    IsLinearTopology (ValuativeRel.valuation R).integer (ValuativeRel.valuation R).integer :=
+  inferInstance   -- ✓
+
+variable {R : Type*} [CommRing R] [ValuativeRel R] [IsDomain R]
+
+instance : ValuationRing (ValuativeRel.valuation R).integer := by
+  sorry
+
+end
 
 end PadicInt

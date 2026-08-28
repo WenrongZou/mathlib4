@@ -611,7 +611,7 @@ the open balls `Valuation.ltIdeal (valuation R) γ` form a basis of neighborhood
 made of ideals. -/
 instance : IsLinearTopology (valuation R).integer (valuation R).integer :=
   .of_valuation_smul_le_of_isInducing (valuation R).valuation_integer_smul_le
-    { toFun := Subtype.val, map_add' := fun _ _ ↦ rfl, map_smul' := fun _ _ ↦ rfl }
+    { toFun := Subtype.val, map_add' _ _ := rfl, map_smul' _ _ := rfl }
     Topology.IsInducing.subtypeVal
 
 @[deprecated (since := "2026-03-17")] alias isOpen_ball := Valuation.isOpen_ball
