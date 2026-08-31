@@ -1203,6 +1203,19 @@ lemma norm_eq_zpow_log_mulValuation {x : ℚ_[p]} (hx : x ≠ 0) :
     ‖x‖ = (p : ℝ) ^ (log (mulValuation x)) := by
   simp [norm_eq_zpow_neg_valuation, hx]
 
+lemma norm_lt_zpow_iff_mulValuation_lt_exp {x : ℚ_[p]} {m : ℤ} :
+    ‖x‖ < (p : ℝ) ^ m ↔ mulValuation x < exp m := by
+  have h1p : (1 : ℝ) < p := mod_cast hp.out.one_lt
+  by_cases hx : x = 0
+  · simpa [hx] using zpow_pos (by positivity) m
+  · rw [norm_eq_zpow_neg_valuation hx, zpow_lt_zpow_iff_right₀ h1p, mulValuation_toFun,
+      ite_eq_right hx, exp_lt_exp]
+
+lemma norm_lt_norm_iff_mulValuation_lt {x y : ℚ_[p]} (hy : y ≠ 0) :
+    ‖x‖ < ‖y‖ ↔ mulValuation x < mulValuation y := by
+  rw [norm_eq_zpow_log_mulValuation hy, norm_lt_zpow_iff_mulValuation_lt_exp,
+    exp_log (mulValuation.ne_zero_iff.mpr hy)]
+
 /-- The additive `p`-adic valuation on `ℚ_[p]`, as an `addValuation`. -/
 def addValuation : AddValuation ℚ_[p] (WithTop ℤ) :=
   AddValuation.of addValuationDef AddValuation.map_zero AddValuation.map_one AddValuation.map_add
@@ -1237,6 +1250,14 @@ theorem norm_le_one_iff_val_nonneg (x : ℚ_[p]) : ‖x‖ ≤ 1 ↔ 0 ≤ x.val
   · simp only [hx, norm_zero, valuation_zero, zero_le_one, le_refl]
   · rw [norm_eq_zpow_neg_valuation hx, ← zpow_zero (p : ℝ), zpow_le_zpow_iff_right₀, neg_nonpos]
     exact Nat.one_lt_cast.2 (Nat.Prime.one_lt' p).1
+
+open WithZero in
+lemma mulValuation_le_one_iff_norm_le_one {x : ℚ_[p]} :
+    mulValuation x ≤ 1 ↔ ‖x‖ ≤ 1 := by
+  rcases eq_or_ne x 0 with rfl | hx
+  · simp
+  · rw [norm_le_one_iff_val_nonneg, mulValuation_toFun, ite_eq_right hx, ← exp_zero, exp_le_exp,
+      neg_nonpos]
 
 end NormLEIff
 

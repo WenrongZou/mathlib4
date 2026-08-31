@@ -6,6 +6,7 @@ Authors: Jiedong Jiang
 module
 
 public import Mathlib.RingTheory.Valuation.ValuativeRel.Basic
+public import Mathlib.Topology.Algebra.LinearTopology
 public import Mathlib.Topology.Algebra.Valued.ValuationTopology
 
 /-!
@@ -421,6 +422,144 @@ end TopologicalSpace
 end Valuation
 
 namespace IsValuativeTopology
+
+variable [TopologicalSpace R] [IsValuativeTopology R]
+
+section Integer
+
+/-- The ring of integers of a ring carrying a valuative topology is open in it. -/
+lemma isOpenEmbedding_subtype_integer :
+    Topology.IsOpenEmbedding (Subtype.val : (valuation R).integer → R) :=
+  Valuation.isOpen_integer.isOpenEmbedding_subtypeVal
+
+/-- The ring of integers of a ring carrying a valuative topology is closed in it. -/
+lemma isClosedEmbedding_subtype_integer :
+    Topology.IsClosedEmbedding (Subtype.val : (valuation R).integer → R) :=
+  Valuation.isClosed_integer.isClosedEmbedding_subtypeVal
+
+variable (R) in
+/-- The ring of integers of `R` inherits the valuative relation of `R` by restriction. -/
+noncomputable instance : ValuativeRel (valuation R).integer :=
+  .ofValuation ((valuation R).comap (Subring.subtype _))
+
+instance : ((valuation R).comap (Subring.subtype (valuation R).integer)).Compatible :=
+  ⟨fun _ _ ↦ Iff.rfl⟩
+
+/-- The ring of integers of `R` is its own ring of integers. -/
+instance : IsIntegerRing (valuation R).integer :=
+  .of_forall_smul_one_vle_one fun o ↦ by
+    rw [smul_eq_mul, mul_one,
+      Valuation.vle_one_iff ((valuation R).comap (Subring.subtype (valuation R).integer))]
+    exact o.2
+
+/-- The subspace topology on the ring of integers of a valued field is the topology of its
+valuative relation. -/
+instance {K : Type*} [Field K] [ValuativeRel K] [TopologicalSpace K] [IsValuativeTopology K] :
+    IsValuativeTopology (valuation K).integer := by
+  set v := (valuation K).comap (Subring.subtype (valuation K).integer) with hv
+  refine IsValuativeTopology.of_mem_nhds_zero_iff_vle v fun {s} ↦ ?_
+  rw [nhds_subtype_eq_comap, Filter.mem_comap]
+  constructor
+  · rintro ⟨t, ht, hts⟩
+    obtain ⟨γ, hγ⟩ := (IsValuativeTopology.mem_nhds_zero_iff t).mp ht
+    obtain ⟨x, hx⟩ := ValuativeRel.valuation_surjective (K := K) γ.val
+    -- replace `x` by an integral element of valuation at most `γ`
+    obtain ⟨y, hy0, hyγ⟩ : ∃ y : (valuation K).integer, v y ≠ 0 ∧ v y ≤ γ.val := by
+      rcases le_or_gt (valuation K x) 1 with h | h
+      · exact ⟨⟨x, h⟩, by simp [hv, hx], by simp [hv, hx]⟩
+      · exact ⟨1, by simp [hv], by simpa [hv, ← hx] using h.le⟩
+    refine ⟨Units.mk0 (v.restrict y) (by simpa [Valuation.restrict_pos_iff] using hy0), ?_⟩
+    intro z hz
+    have hz' : v.restrict z < v.restrict y := hz
+    exact hts (hγ (lt_of_lt_of_le ((Valuation.restrict_lt_iff (v := v)).mp hz') hyγ))
+  · rintro ⟨δ, hδ⟩
+    have hδ0 : embedding δ.val ≠ 0 := by simp
+    exact ⟨{x : K | valuation K x < embedding δ.val},
+      (IsValuativeTopology.hasBasis_nhds_zero K).mem_of_mem (i := Units.mk0 _ hδ0) trivial,
+      fun z hz ↦ hδ ((restrict_lt_iff_lt_embedding (v := v)).mpr hz)⟩
+
+end Integer
+
+section SMul
+
+variable {O : Type*} [Ring O] [Module O R]
+
+/-- If a ring `O` acts on a ring `R` carrying a valuative topology without increasing the
+valuation, then the topology on `R` is `O`-linear: the open balls
+`Valuation.ltSubmoduleOfSMulLe (valuation R) h γ` form a basis of neighborhoods of zero made of
+`O`-submodules.
+This is stated for an arbitrary such `O`, rather than for `(valuation R).integer`, so that it
+applies to rings that are only propositionally, and not definitionally, the ring of integers. -/
+theorem _root_.IsLinearTopology.of_valuation_smul_le
+    (h : ∀ (o : O) (x : R), valuation R (o • x) ≤ valuation R x) : IsLinearTopology O R :=
+  IsLinearTopology.mk_of_hasBasis O (p := fun _ : (ValueGroupWithZero R)ˣ ↦ True)
+    (s := (valuation R).ltSubmoduleOfSMulLe h) (IsValuativeTopology.hasBasis_nhds_zero R)
+
+/-- If a ring `O` acts on a ring `R` carrying a valuative topology without increasing the
+valuation, and if `O` carries the topology induced by an `O`-linear map `f : O →ₗ[O] R`, then the
+topology on `O` is `O`-linear: the preimages under `f` of the open balls of `R` form a basis of
+neighborhoods of zero made of left ideals. -/
+theorem _root_.IsLinearTopology.of_valuation_smul_le_of_isInducing [TopologicalSpace O]
+    (h : ∀ (o : O) (x : R), valuation R (o • x) ≤ valuation R x)
+    (f : O →ₗ[O] R) (hf : Topology.IsInducing f) : IsLinearTopology O O := by
+  refine IsLinearTopology.mk_of_hasBasis O (p := fun _ : (ValueGroupWithZero R)ˣ ↦ True)
+    (s := fun γ ↦ ((valuation R).ltSubmoduleOfSMulLe h γ).comap f) ?_
+  rw [hf.nhds_eq_comap, map_zero]
+  exact (IsValuativeTopology.hasBasis_nhds_zero R).comap _
+
+end SMul
+
+section IsIntegerSMul
+
+/-- The ring of integers of `R` acts on `R` by integers. -/
+instance : IsIntegerSMul (valuation R).integer R where
+  smul_vle o x :=
+    (Valuation.vle_iff_le (valuation R)).mpr ((valuation R).valuation_integer_smul_le o x)
+
+variable {O : Type*} [Ring O] [Module O R]
+
+/-- If `O` acts by integers on a ring `R` carrying a valuative topology, then that topology is
+`O`-linear: the open balls are `O`-submodules.
+
+All the hypotheses are typeclasses, so this covers at once the ring of integers of `R`, any ring
+`O` with `[ValuativeExtension O R]` which is its own ring of integers (such as `ℤ_[p]` acting on
+`ℚ_[p]`), and `R` itself when `[IsIntegerRing R]`. -/
+instance _root_.IsLinearTopology.of_isIntegerSMul [IsIntegerSMul O R] : IsLinearTopology O R :=
+  .of_valuation_smul_le fun o x ↦ valuation_smul_le o x
+
+end IsIntegerSMul
+
+section Integers
+
+variable {A : Type*} [CommRing A] [ValuativeRel A] {O : Type*} [CommRing O] [Algebra O A]
+
+/-- A ring of integers for a compatible valuation is a ring of integers for the canonical
+valuation of the valuative relation. -/
+theorem _root_.Valuation.Integers.of_compatible {Γ₀ : Type*} [LinearOrderedCommGroupWithZero Γ₀]
+    {v : Valuation A Γ₀} [v.Compatible] (hO : v.Integers O) : (valuation A).Integers O where
+  hom_inj := hO.hom_inj
+  map_le_one x := (Valuation.vle_one_iff _).mp (v.vle_one_iff.mpr (hO.map_le_one x))
+  exists_of_le_one _ h :=
+    hO.exists_of_le_one (v.vle_one_iff.mp ((Valuation.vle_one_iff _).mpr h))
+
+variable [TopologicalSpace A] [IsValuativeTopology A]
+
+/-- If `O` is a ring of integers for the valuative relation on `A`, in the sense of
+`Valuation.Integers`, then the topology on `A` is `O`-linear. Contrary to the instance for
+`(valuation A).integer`, this only needs `O` to be *propositionally* the ring of integers. -/
+theorem _root_.Valuation.Integers.isLinearTopology (hO : (valuation A).Integers O) :
+    IsLinearTopology O A :=
+  .of_valuation_smul_le hO.smul_le
+
+/-- If `O` is a ring of integers for the valuative relation on `A`, in the sense of
+`Valuation.Integers`, and carries the topology induced by `algebraMap O A`, then the topology
+on `O` is `O`-linear. -/
+theorem _root_.Valuation.Integers.isLinearTopology_self [TopologicalSpace O]
+    (hO : (valuation A).Integers O) (hf : Topology.IsInducing (algebraMap O A)) :
+    IsLinearTopology O O :=
+  .of_valuation_smul_le_of_isInducing hO.smul_le (Algebra.linearMap O A) hf
+
+end Integers
 
 @[deprecated (since := "2026-03-17")] alias isOpen_ball := Valuation.isOpen_ball
 @[deprecated (since := "2026-03-17")] alias isClosed_ball := Valuation.isClosed_ball
