@@ -59,7 +59,8 @@ instance : ValuativeRel.IsIntegerRing ℤ_[p] :=
 instance : ValuativeExtension ℤ_[p] ℚ_[p] where
   vle_iff_vle _ _ := Iff.rfl
 
-/-- The topology of `ℚ_[p]` is `ℤ_[p]`-linear. -/
+-- /-- The topology of `ℚ_[p]` is `ℤ_[p]`-linear. -/
+set_option trace.Meta.synthInstance true in
 instance : IsLinearTopology ℤ_[p] ℚ_[p] := inferInstance
   -- integers.isLinearTopology
 
@@ -89,7 +90,8 @@ instance : IsValuativeTopology ℤ_[p] := by
       WithZero.exp_log (by simp)] at hz
     simpa [Valuation.restrict_lt_iff_lt_embedding] using hz
 
-/-- The topology of `ℤ_[p]` is linear. -/
+-- /-- The topology of `ℤ_[p]` is linear. -/
+set_option trace.Meta.synthInstance true in
 instance : IsLinearTopology ℤ_[p] ℤ_[p] := inferInstance
 
 end PadicInt

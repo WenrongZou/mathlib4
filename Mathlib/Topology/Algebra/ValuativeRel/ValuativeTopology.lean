@@ -527,6 +527,21 @@ All the hypotheses are typeclasses, so this covers at once the ring of integers 
 instance _root_.IsLinearTopology.of_isIntegerSMul [IsIntegerSMul O R] : IsLinearTopology O R :=
   .of_valuation_smul_le fun o x ↦ valuation_smul_le o x
 
+instance : IsLinearTopology (valuation R).integer R := inferInstance
+
+-- /-- The topology of the ring of integers of `R` is linear over itself: the open balls are
+-- ideals. Note that this does not go through `IsValuativeTopology (valuation R).integer`, which
+-- fails for general `R`. -/
+-- instance : IsLinearTopology (valuation R).integer (valuation R).integer :=
+--   .of_valuation_smul_le_of_isInducing (R := R)
+--     (fun o x ↦ (valuation R).valuation_integer_smul_le o x)
+--     { toFun := Subtype.val, map_add' := fun _ _ ↦ rfl, map_smul' := fun _ _ ↦ rfl }
+--     Topology.IsInducing.subtypeVal
+
+-- set_option trace.Meta.synthInstance true in
+instance {K : Type*} [Field K] [ValuativeRel K] [TopologicalSpace K] [IsValuativeTopology K] :
+  IsLinearTopology (valuation K).integer (valuation K).integer := inferInstance
+
 end IsIntegerSMul
 
 section Integers
