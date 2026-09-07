@@ -580,8 +580,7 @@ end Integers
 /-- The topology on the ring of integers of a ring `R` carrying a valuative topology is linear:
 the open balls `Valuation.ltIdeal (valuation R) γ` form a basis of neighborhoods of zero
 made of ideals. -/
-instance [TopologicalSpace R] [IsValuativeTopology R] :
-    IsLinearTopology (valuation R).integer (valuation R).integer := by
+instance : IsLinearTopology (valuation R).integer (valuation R).integer := by
   refine IsLinearTopology.mk_of_hasBasis _
     (p := fun _ : (ValueGroupWithZero R)ˣ ↦ True) (s := (valuation R).ltIdeal) ?_
   rw [nhds_subtype_eq_comap]
@@ -590,8 +589,7 @@ instance [TopologicalSpace R] [IsValuativeTopology R] :
 /-- The topology on a ring `R` carrying a valuative topology is linear over its ring of integers:
 the open balls `Valuation.ltSubmodule (valuation R) γ` form a basis of neighborhoods of zero
 made of `(valuation R).integer`-submodules. -/
-instance [TopologicalSpace R] [IsValuativeTopology R] :
-    IsLinearTopology (valuation R).integer R :=
+instance : IsLinearTopology (valuation R).integer R :=
   IsLinearTopology.mk_of_hasBasis _ (p := fun _ : (ValueGroupWithZero R)ˣ ↦ True)
     (s := (valuation R).ltSubmodule) (IsValuativeTopology.hasBasis_nhds_zero R)
 

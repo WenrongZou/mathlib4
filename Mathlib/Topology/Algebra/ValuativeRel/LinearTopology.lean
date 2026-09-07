@@ -54,24 +54,24 @@ variable (R : Type*) [Ring R] [ValuativeRel R] [TopologicalSpace R] [IsValuative
 
 variable {R}
 
-/-- The topology on the ring of integers of a ring `R` carrying a valuative topology is linear:
-the open balls `Valuation.ltIdeal (valuation R) γ` form a basis of neighborhoods of zero
-made of ideals.
+-- /-- The topology on the ring of integers of a ring `R` carrying a valuative topology is linear:
+-- the open balls `Valuation.ltIdeal (valuation R) γ` form a basis of neighborhoods of zero
+-- made of ideals.
 
-Unlike `IsLinearTopology (valuation R).integer R`, this cannot be obtained from
-`IsLinearTopology.of_isIntegerSMul`: the module here is the subring itself, which carries the
-subspace topology but no valuative relation of its own. -/
-instance : IsLinearTopology (valuation R).integer (valuation R).integer := by
-  refine IsLinearTopology.mk_of_hasBasis _
-    (p := fun _ : (ValueGroupWithZero R)ˣ ↦ True) (s := (valuation R).ltIdeal) ?_
-  rw [nhds_subtype_eq_comap]
-  exact (IsValuativeTopology.hasBasis_nhds_zero R).comap _
+-- Unlike `IsLinearTopology (valuation R).integer R`, this cannot be obtained from
+-- `IsLinearTopology.of_isIntegerSMul`: the module here is the subring itself, which carries the
+-- subspace topology but no valuative relation of its own. -/
+-- instance : IsLinearTopology (valuation R).integer (valuation R).integer := by
+--   refine IsLinearTopology.mk_of_hasBasis _
+--     (p := fun _ : (ValueGroupWithZero R)ˣ ↦ True) (s := (valuation R).ltIdeal) ?_
+--   rw [nhds_subtype_eq_comap]
+--   exact (IsValuativeTopology.hasBasis_nhds_zero R).comap _
 
-/-- The topology on a ring `R` carrying a valuative topology is linear over its ring of integers:
-the open balls `Valuation.ltSubmodule (valuation R) γ` form a basis of neighborhoods of zero
-made of `(valuation R).integer`-submodules. -/
-instance : IsLinearTopology (valuation R).integer R := inferInstance
-  -- IsLinearTopology.mk_of_hasBasis _ (p := fun _ : (ValueGroupWithZero R)ˣ ↦ True)
-  --   (s := (valuation R).ltSubmodule) (IsValuativeTopology.hasBasis_nhds_zero R)
+-- /-- The topology on a ring `R` carrying a valuative topology is linear over its ring of integers:
+-- the open balls `Valuation.ltSubmodule (valuation R) γ` form a basis of neighborhoods of zero
+-- made of `(valuation R).integer`-submodules. -/
+-- instance : IsLinearTopology (valuation R).integer R := inferInstance
+--   -- IsLinearTopology.mk_of_hasBasis _ (p := fun _ : (ValueGroupWithZero R)ˣ ↦ True)
+--   --   (s := (valuation R).ltSubmodule) (IsValuativeTopology.hasBasis_nhds_zero R)
 
 end IsValuativeTopology
