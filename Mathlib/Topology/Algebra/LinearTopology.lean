@@ -6,6 +6,8 @@ Authors: Antoine Chambert-Loir, María Inés de Frutos-Fernández, Anatole Dedec
 module
 
 public import Mathlib.RingTheory.TwoSidedIdeal.Operations
+public import Mathlib.Topology.Algebra.Group.Units
+public import Mathlib.Topology.Algebra.Nonarchimedean.Basic
 public import Mathlib.Topology.Algebra.OpenSubgroup
 
 /-! # Linear topologies on modules and rings
@@ -49,6 +51,10 @@ hence our definition agrees with [N. Bourbaki, *Algebra II*, chapter 4, §2, n°
   For `f, g : ι → R` such that `f i` tends to `0`, `f i * g i` still tends to `0`.
 * `IsLinearTopology.tendsto_mul_zero_of_right`: assume that the topology on `R` is (left-)linear.
   For `f, g : ι → R` such that `g i` tends to `0`, `f i * g i` still tends to `0`
+* `IsLinearTopology.hasBasis_nhds_one_units`: assume that the topology on `R` is (left-)linear.
+  Then the sets `{u : Rˣ | ↑u - 1 ∈ I}`, where `I` runs over the left ideals of `R` which are
+  neighborhoods of `0`, form a basis of neighborhoods of `1` in `Rˣ`. In particular, `Rˣ` is a
+  nonarchimedean group (declared as an `instance`).
 * If `R` is a commutative ring and its topology is left-linear, it is automatically
   right-linear (declared as a low-priority instance).
 
@@ -340,6 +346,51 @@ theorem tendsto_mul_zero_of_right [IsLinearTopology R R] {ι : Type*} {f : Filte
   tendsto_smul_zero (R := R) _ _ hb
 
 end Ring
+
+/-! ### Units of a linearly topologized ring -/
+
+section Units
+
+variable {R : Type*} [Ring R] [TopologicalSpace R]
+
+/-- If the topology on a ring `R` is (left-)linear, then the sets `{u : Rˣ | ↑u - 1 ∈ I}`,
+where `I` runs over the left ideals of `R` which are neighborhoods of `0`, form a basis of
+neighborhoods of `1` in `Rˣ`.
+
+Note that this does not require `Rˣ` to be open in `R`: if `↑u - 1 ∈ I`, then
+`↑u⁻¹ - 1 = -(↑u⁻¹ * (↑u - 1)) ∈ I` as well. -/
+theorem hasBasis_nhds_one_units [IsTopologicalAddGroup R] [IsLinearTopology R R] :
+    (𝓝 (1 : Rˣ)).HasBasis (fun I : Ideal R ↦ (I : Set R) ∈ 𝓝 0)
+      (fun I : Ideal R ↦ {u : Rˣ | (u : R) - 1 ∈ I}) := by
+  have h₁ : (𝓝 (1 : R)).HasBasis (fun I : Ideal R ↦ (I : Set R) ∈ 𝓝 0)
+      (fun I : Ideal R ↦ {x : R | x - 1 ∈ I}) :=
+    nhds_translation_sub (1 : R) ▸ hasBasis_ideal.comap (· - 1)
+  have h : 𝓝 (1 : Rˣ) = comap Units.val (𝓝 1) ⊓ comap (fun u : Rˣ ↦ (↑u⁻¹ : R)) (𝓝 1) := by
+    rw [Units.isInducing_embedProduct.nhds_eq_comap, Units.embedProduct_apply, nhds_prod_eq,
+      comap_prod, ← MulOpposite.comap_unop_nhds, comap_comap]
+    simp [Function.comp_def]
+  rw [h]
+  refine ((h₁.comap _).inf (h₁.comap _)).to_hasBasis
+    (fun I hI ↦ ⟨I.1 ⊓ I.2, by simpa using inter_mem hI.1 hI.2, fun u hu ↦ ?_⟩)
+    (fun I hI ↦ ⟨(I, I), ⟨hI, hI⟩, Set.inter_subset_left⟩)
+  obtain ⟨hu₁, hu₂⟩ := Submodule.mem_inf.mp hu
+  exact ⟨hu₁, by simpa [mul_sub] using I.2.neg_mem (I.2.mul_mem_left (↑u⁻¹ : R) hu₂)⟩
+
+/-- If the topology on a ring `R` is (left-)linear, then `Rˣ` is a nonarchimedean group. -/
+instance (priority := 100) [IsTopologicalRing R] [IsLinearTopology R R] :
+    NonarchimedeanGroup Rˣ where
+  is_nonarchimedean U hU := by
+    obtain ⟨I, hI, hIU⟩ := hasBasis_nhds_one_units.mem_iff.mp hU
+    let V : Subgroup Rˣ :=
+      { carrier := {u | (u : R) - 1 ∈ I}
+        one_mem' := by simp
+        mul_mem' {u v} hu hv := by
+          simpa [mul_sub] using I.add_mem (I.mul_mem_left (u : R) hv) hu
+        inv_mem' {u} hu := by
+          simpa [mul_sub] using I.neg_mem (I.mul_mem_left (↑u⁻¹ : R) hu) }
+    exact ⟨⟨V, V.isOpen_of_mem_nhds (hasBasis_nhds_one_units.mem_of_mem hI)⟩, hIU⟩
+
+end Units
 
 section CommRing
 
